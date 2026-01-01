@@ -1,0 +1,441 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { initializeApp } from 'firebaseapp';
+import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'firebaseauth';
+import { getFirestore, collection, doc, setDoc, onSnapshot, query, deleteDoc, addDoc } from 'firebasefirestore';
+import { 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine
+} from 'recharts';
+import { 
+  ChevronLeft, ChevronRight, Plus, Stethoscope, Heart, Pill, Trash2,
+  Calendar as CalendarIcon, X, Activity, Scale, TrendingUp, Sparkles, Cloud, Sun, Star
+} from 'lucide-react';
+
+ --- Firebase Configuration ---
+const firebaseConfig = JSON.parse(__firebase_config);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = typeof __app_id !== 'undefined'  __app_id  'family-health-2026-earth-crayon';
+
+ --- Constants (Soft Earth & Crayon Palette) ---
+const MEMBERS = [
+  { id 'dad', name '爸爸', color '#bae6fd', bgColor 'bg-blue-10070', border 'border-blue-200', text 'text-blue-500' },
+  { id 'mom', name '媽媽', color '#fbcfe8', bgColor 'bg-pink-10070', border 'border-pink-200', text 'text-pink-500' },
+  { id 'me', name '我', color '#bbf7d0', bgColor 'bg-green-10070', border 'border-green-200', text 'text-green-500' },
+];
+
+const EARTH_COLORS = {
+  bg '#f5f2e9',  Warm beige
+  accent '#d4a373',  Muted brown
+  lightAccent '#e9edc9',  Sage light
+  border '#faedcd'  Cream border
+};
+
+const MONTH_NAMES = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
+
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
+  const [records, setRecords] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const [formData, setFormData] = useState({
+    memberId 'dad', hospital '', department '', problem '',
+    systolic '', diastolic '', heartRate '', weight '',
+    medication '', frequency '', medDuration ''
+  });
+
+  useEffect(() = {
+    const initAuth = async () = {
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (err) { console.error(Auth failed, err); }
+    };
+    initAuth();
+    const unsubscribe = onAuthStateChanged(auth, setUser);
+    return () = unsubscribe();
+  }, []);
+
+  useEffect(() = {
+    if (!user) return;
+    const q = collection(db, 'artifacts', appId, 'public', 'data', 'health_records');
+    const unsubscribe = onSnapshot(q, (snapshot) = {
+      const data = snapshot.docs.map(doc = ({ id doc.id, ...doc.data() }));
+      setRecords(data);
+      setLoading(false);
+    }, (error) = {
+      console.error(Snapshot error, error);
+      setLoading(false);
+    });
+    return () = unsubscribe();
+  }, [user]);
+
+  const month = currentDate.getMonth();
+  const year = currentDate.getFullYear();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const startingDay = new Date(year, month, 1).getDay();
+
+  const handlePrevMonth = () = setCurrentDate(prev = new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  const handleNextMonth = () = setCurrentDate(prev = new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+
+  const medicationsList = useMemo(() = {
+    const meds = { dad [], mom [], me [] };
+    const sortedRecords = [...records].sort((a, b) = new Date(b.date) - new Date(a.date));
+    sortedRecords.forEach(rec = {
+      if (rec.medication && rec.memberId) {
+        const existing = meds[rec.memberId].find(m = m.name === rec.medication);
+        if (!existing) {
+          meds[rec.memberId].push({ 
+            name rec.medication, 
+            frequency rec.frequency, 
+            duration rec.medDuration 
+          });
+        }
+      }
+    });
+    return meds;
+  }, [records]);
+
+  const chartData = useMemo(() = {
+    const dataMap = {};
+    for (let i = 1; i = daysInMonth; i++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+      dataMap[dateStr] = { displayDate `${month + 1}${i}` };
+    }
+    records.forEach(rec = {
+      if (rec.date && dataMap[rec.date]) {
+        if (rec.systolic) dataMap[rec.date][`${rec.memberId}_systolic`] = parseFloat(rec.systolic);
+        if (rec.diastolic) dataMap[rec.date][`${rec.memberId}_diastolic`] = parseFloat(rec.diastolic);
+        if (rec.heartRate) dataMap[rec.date][`${rec.memberId}_heartRate`] = parseFloat(rec.heartRate);
+        if (rec.weight) dataMap[rec.date][`${rec.memberId}_weight`] = parseFloat(rec.weight);
+      }
+    });
+    return Object.values(dataMap);
+  }, [records, month, year, daysInMonth]);
+
+  const openAddModal = (dateStr) = {
+    setSelectedDate(dateStr);
+    setEditingRecord(null);
+    setFormData({
+      memberId 'dad', hospital '', department '', problem '',
+      systolic '', diastolic '', heartRate '', weight '', 
+      medication '', frequency '', medDuration ''
+    });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (record) = {
+    setSelectedDate(record.date);
+    setEditingRecord(record);
+    setFormData({ ...record });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e) = {
+    e.preventDefault();
+    if (!user) return;
+    const dataToSave = { ...formData, date selectedDate, updatedAt new Date().toISOString() };
+    try {
+      if (editingRecord) await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'health_records', editingRecord.id), dataToSave);
+      else await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'health_records'), dataToSave);
+      setIsModalOpen(false);
+    } catch (err) { console.error(Save error, err); }
+  };
+
+  const handleDelete = async (id) = {
+    if (!window.confirm(確定要刪除這條紀錄嗎？)) return;
+    try {
+      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'health_records', id));
+      setIsModalOpen(false);
+    } catch (err) { console.error(Delete error, err); }
+  };
+
+  if (loading) return (
+    div className=flex items-center justify-center h-screen bg-[#f5f2e9] cute-font
+      div className=text-center
+        div className=text-6xl mb-4 animate-bounce🖍️div
+        p className=font-bold text-[#d4a373] tracking-widest正在拿彩色筆...p
+      div
+    div
+  );
+
+  return (
+    div className=min-h-screen bg-[#f5f2e9] text-[#6b705c] pb-10 selectionbg-[#e9edc9] cute-font overflow-x-hidden
+      
+      { Earthy Crayon Header }
+      header className=sticky top-0 z-30 px-4 py-3 bg-white70 backdrop-blur-md border-b-2 border-dashed border-[#e9edc9]
+        div className=max-w-5xl mx-auto flex items-center justify-between
+          div className=flex items-center gap-2
+            Sun className=text-[#d4a373] animate-spin-slow size={20} 
+            span className=text-xs font-black text-[#a98467] italic tracking-widestFAMILY HEALTH DIARYspan
+          div
+          div className=flex items-center gap-2 bg-[#fefae0] rounded-2xl px-5 py-2 border border-[#faedcd] shadow-sm
+            button onClick={handlePrevMonth} className=text-[#d4a373] hoverscale-125 transition-allChevronLeft size={20} button
+            span className=font-black text-sm min-w-[120px] text-center text-[#6b705c] underline decoration-[#faedcd] decoration-4{year}  {MONTH_NAMES[month]}span
+            button onClick={handleNextMonth} className=text-[#d4a373] hoverscale-125 transition-allChevronRight size={20} button
+          div
+          div className=flex gap-2 text-xl🍂🐈🍄div
+        div
+      header
+
+      main className=max-w-5xl mx-auto p-4 space-y-6
+        
+        { Medication Area - Earth Style }
+        section className=bg-white rounded-[2.5rem] p-6 shadow-sm border-2 border-dashed border-[#faedcd] relative
+          div className=absolute -top-4 left-10 bg-[#f5f2e9] px-4 py-1 flex items-center gap-2 z-10
+            Pill className=text-[#d4a373] size={18} 
+            h2 className=font-black text-[#a98467] text-sm tracking-tighter日常藥箱清單 💊h2
+          div
+          div className=grid grid-cols-1 smgrid-cols-3 gap-5 pt-4
+            {MEMBERS.map(m = (
+              div key={m.id} className={`${m.bgColor} rounded-3xl p-5 border-2 border-white shadow-sm relative`}
+                div className=absolute -right-3 -bottom-3 text-5xl opacity-10 rotate-12 pointer-events-none🍂div
+                div className=flex items-center gap-2 mb-4
+                  div className={`w-3 h-3 rounded-full ${m.text.replace('text', 'bg')}`}div
+                  span className={`text-sm font-black ${m.text}`}{m.name}span
+                div
+                div className=space-y-3 min-h-[50px]
+                  {medicationsList[m.id].length  0  (
+                    medicationsList[m.id].map((med, idx) = (
+                      div key={idx} className=bg-white95 p-3 rounded-2xl text-[12px] border border-[#faedcd] shadow-sm space-y-2 relative break-words
+                        div className=font-black text-slate-700 leading-tight{med.name}div
+                        div className=flex flex-col gap-1 text-slate-500 font-bold text-[10px]
+                          span className=flex items-center gap-1 opacity-80 italic用法：{med.frequency  '未填寫'}span
+                          span className=bg-[#fefae0] text-[9px] px-2 py-1 rounded-full inline-block text-[#d4a373] font-black self-start shadow-sm
+                            期限：{med.duration  '長期服用'}
+                          span
+                        div
+                      div
+                    ))
+                  )  (
+                    p className=text-[10px] text-[#a98467] opacity-60 italic py-4 text-center underline decoration-dotted今天身體乖乖沒吃藥藥p
+                  )}
+                div
+              div
+            ))}
+          div
+        section
+
+        { Calendar Section }
+        section className=relative px-2
+          div className=absolute -top-10 -left-6 text-5xl opacity-30 pointer-events-none☁️div
+          div className=absolute -top-12 right-6 text-4xl opacity-30 animate-bounce-slow pointer-events-none🌳div
+          div className=absolute -bottom-6 left-12 -translate-x-12 text-4xl pointer-events-none🐾🐾🐾div
+          div className=absolute bottom-10 -right-4 text-5xl animate-pulse pointer-events-none🐱div
+          
+          div className=bg-white rounded-[3.5rem] shadow-xl shadow-[#faedcd]40 border-4 border-white outline outline-1 outline-[#faedcd] overflow-hidden relative
+            div className=grid grid-cols-7 bg-[#fefae0]30 border-b-2 border-dashed border-[#faedcd]
+              {WEEKDAYS.map(day = div key={day} className=py-3 text-center text-[11px] font-black text-[#d4a373] uppercase tracking-widest{day}div)}
+            div
+            div className=grid grid-cols-7
+              {[...Array(startingDay)].map((_, i) = div key={`empty-${i}`} className=min-h-[100px] bg-[#f5f2e9]20 border-b border-r border-[#faedcd]20 )}
+              {[...Array(daysInMonth)].map((_, i) = {
+                const day = i + 1;
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dateRecords = records.filter(r = r.date === dateStr);
+                const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
+                
+                return (
+                  div key={day} onClick={() = openAddModal(dateStr)} className=min-h-[100px] border-b border-r border-[#faedcd]20 p-2 hoverbg-[#e9edc9]20 transition-all cursor-pointer group relative
+                    div className={`text-xs font-black w-8 h-8 flex items-center justify-center rounded-2xl mb-1.5 transition-all ${isToday  'bg-[#d4a373] text-white shadow-lg scale-110'  'text-[#ccd5ae] group-hovertext-[#d4a373]'}`}{day}div
+                    div className=flex flex-col gap-1.5
+                      {dateRecords.map(rec = {
+                        const member = MEMBERS.find(m = m.id === rec.memberId);
+                        const hasText = rec.department  rec.hospital;
+                        return hasText  (
+                          div key={rec.id} onClick={(e) = { e.stopPropagation(); openEditModal(rec); }} 
+                            className={`w-full text-[9px] p-1.5 rounded-xl border-b-2 ${member.bgColor} ${member.text} font-black border-white shadow-sm truncate leading-tight`}
+                          
+                            {rec.department  rec.hospital}
+                          div
+                        )  (
+                          div key={rec.id} onClick={(e) = { e.stopPropagation(); openEditModal(rec); }} 
+                            className={`w-3 h-3 rounded-full ${member.bgColor} shadow-sm border-2 border-white mt-1 animate-bounce-slow`}
+                          
+                        );
+                      })}
+                    div
+                  div
+                );
+              })}
+            div
+          div
+        section
+
+        { Charts Section }
+        section className=space-y-6 pt-4
+          div className=flex items-center gap-3 px-4
+            Star className=text-[#d4a373] size={20} 
+            h2 className=text-sm font-black text-[#a98467] tracking-widest uppercase italic我的彩色數據手帳h2
+            div className=flex-1 border-b-4 border-dotted border-[#faedcd]div
+          div
+
+          div className=grid grid-cols-1 gap-6
+            { Combined Blood Pressure Chart }
+            ChartCard title=血壓追蹤 (實線收縮  虛線舒張)
+              ResponsiveContainer width=100% height={200}
+                LineChart data={chartData} margin={{ top 10, right 30, left 0, bottom 0 }}
+                  CartesianGrid strokeDasharray=5 5 vertical={false} stroke=#faedcd 
+                  XAxis dataKey=displayDate fontSize={10} tickLine={false} axisLine={false} dy={5} stroke=#a98467 
+                  YAxis 
+                    fontSize={10} 
+                    tickLine={true} 
+                    axisLine={true} 
+                    width={40} 
+                    stroke=#a98467
+                    domain={['dataMin - 10', 'dataMax + 10']}
+                  
+                  Tooltip contentStyle={{ borderRadius '25px', border '3px dashed #faedcd', fontSize '11px', backgroundColor '#fefae0' }} 
+                  {MEMBERS.map(m = (
+                    React.Fragment key={m.id}
+                      Line type=monotone dataKey={`${m.id}_systolic`} name={`${m.name}收縮`} stroke={m.color} strokeWidth={5} dot={{ r 4, fill '#fff', strokeWidth 2 }} connectNulls strokeLinecap=round 
+                      Line type=monotone dataKey={`${m.id}_diastolic`} name={`${m.name}舒張`} stroke={m.color} strokeWidth={3} strokeDasharray=6 6 dot={{ r 3 }} connectNulls strokeLinecap=round 
+                    React.Fragment
+                  ))}
+                  ReferenceLine y={140} stroke=#d4a373 strokeDasharray=8 8 label={{ position 'right', value '注意', fill '#d4a373', fontSize 10, fontWeight 'bold' }} 
+                LineChart
+              ResponsiveContainer
+            ChartCard
+
+            div className=grid grid-cols-1 mdgrid-cols-2 gap-6
+              ChartCard title=心跳波浪 (bpm) icon={Heart size={16} }
+                ResponsiveContainer width=100% height={160}
+                  LineChart data={chartData} margin={{ top 10, right 20, left 0, bottom 0 }}
+                    CartesianGrid strokeDasharray=5 5 vertical={false} stroke=#faedcd 
+                    XAxis dataKey=displayDate fontSize={10} stroke=#a98467 
+                    YAxis fontSize={10} width={40} domain={[40, 120]} stroke=#a98467 axisLine tickLine 
+                    {MEMBERS.map(m = (
+                      Line key={m.id} type=monotone dataKey={`${m.id}_heartRate`} name={m.name} stroke={m.color} strokeWidth={5} dot={{ r 4 }} connectNulls strokeLinecap=round 
+                    ))}
+                  LineChart
+                ResponsiveContainer
+              ChartCard
+
+              ChartCard title=體重變變變 (kg) icon={Scale size={16} }
+                ResponsiveContainer width=100% height={160}
+                  LineChart data={chartData} margin={{ top 10, right 20, left 0, bottom 0 }}
+                    CartesianGrid strokeDasharray=5 5 vertical={false} stroke=#faedcd 
+                    XAxis dataKey=displayDate fontSize={10} stroke=#a98467 
+                    YAxis fontSize={10} width={40} domain={['auto', 'auto']} stroke=#a98467 axisLine tickLine 
+                    {MEMBERS.map(m = (
+                      Line key={m.id} type=monotone dataKey={`${m.id}_weight`} name={m.name} stroke={m.color} strokeWidth={5} dot={{ r 4 }} connectNulls strokeLinecap=round 
+                    ))}
+                  LineChart
+                ResponsiveContainer
+              ChartCard
+            div
+          div
+        section
+      main
+
+      { Entry Modal }
+      {isModalOpen && (
+        div className=fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#6b705c]20 backdrop-blur-sm
+          div className=bg-white rounded-[3.5rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border-4 border-[#faedcd]
+            div className=p-10
+              div className=flex justify-between items-center mb-8
+                div
+                  h2 className=text-3xl font-black text-[#a98467] tracking-tight underline decoration-[#faedcd] decoration-4彩色小筆記 🌳h2
+                  p className=text-[#d4a373] font-bold text-sm mt-1 italic underline decoration-dotted{selectedDate}p
+                div
+                button onClick={() = setIsModalOpen(false)} className=p-4 bg-[#f5f2e9] text-[#ccd5ae] rounded-[2rem] hoverscale-110 transition-all shadow-smX size={28} button
+              div
+
+              form onSubmit={handleSubmit} className=space-y-8
+                div className=grid grid-cols-3 gap-4
+                  {MEMBERS.map(m = (
+                    button key={m.id} type=button onClick={() = setFormData({...formData, memberId m.id})}
+                      className={`py-5 rounded-[2rem] border-2 text-sm font-black transition-all ${formData.memberId === m.id  `border-[#a98467] ${m.bgColor} ${m.text} shadow-xl scale-105`  `border-[#f5f2e9] bg-[#f5f2e9] text-[#ccd5ae] hoverborder-[#faedcd]`}`}
+                      {m.name}
+                    button
+                  ))}
+                div
+
+                div className=grid grid-cols-1 mdgrid-cols-2 gap-8
+                  div className=space-y-4
+                    label className=block text-[11px] font-black text-[#ccd5ae] uppercase tracking-widest px-3看診健康狀態label
+                    input type=text value={formData.hospital} onChange={e = setFormData({...formData, hospital e.target.value})} className=w-full px-6 py-5 bg-[#f5f2e9] rounded-[2rem] outline-none font-bold text-sm shadow-inner placeholdertext-[#ccd5ae] placeholder=去哪間醫院呢？ 
+                    input type=text value={formData.department} onChange={e = setFormData({...formData, department e.target.value})} className=w-full px-6 py-5 bg-[#f5f2e9] rounded-[2rem] outline-none font-bold text-sm shadow-inner placeholdertext-[#ccd5ae] placeholder=看什麼科？ 
+                    textarea value={formData.problem} onChange={e = setFormData({...formData, problem e.target.value})} className=w-full px-6 py-5 bg-[#f5f2e9] rounded-[2rem] outline-none font-bold h-[120px] text-sm shadow-inner placeholder=記錄一下身體狀況吧...textarea
+                  div
+                  
+                  div className=space-y-6
+                    div className=bg-[#fefae0] p-6 rounded-[3rem] border-2 border-dashed border-[#faedcd] space-y-4
+                      h3 className=text-[11px] font-black text-[#d4a373] uppercase tracking-widest flex items-center gap-2🍁 身體數字h3
+                      div className=grid grid-cols-2 gap-3
+                        div className=bg-white p-3 rounded-2xl shadow-smlabel className=text-[10px] text-[#ccd5ae] font-black收縮壓labelinput type=number value={formData.systolic} onChange={e = setFormData({...formData, systolic e.target.value})} className=w-full font-black text-[#a98467] outline-none text-lg div
+                        div className=bg-white p-3 rounded-2xl shadow-smlabel className=text-[10px] text-[#ccd5ae] font-black舒張壓labelinput type=number value={formData.diastolic} onChange={e = setFormData({...formData, diastolic e.target.value})} className=w-full font-black text-[#a98467] outline-none text-lg div
+                        div className=bg-white p-3 rounded-2xl shadow-smlabel className=text-[10px] text-[#ccd5ae] font-black心跳labelinput type=number value={formData.heartRate} onChange={e = setFormData({...formData, heartRate e.target.value})} className=w-full font-black text-[#a98467] outline-none text-lg div
+                        div className=bg-white p-3 rounded-2xl shadow-smlabel className=text-[10px] text-[#ccd5ae] font-black體重labelinput type=number step=0.1 value={formData.weight} onChange={e = setFormData({...formData, weight e.target.value})} className=w-full font-black text-[#a98467] outline-none text-lg div
+                      div
+                    div
+                    div className=bg-[#e9edc9]40 p-6 rounded-[3rem] border-2 border-dashed border-[#ccd5ae] space-y-4
+                      h3 className=text-[11px] font-black text-[#6b705c] uppercase tracking-widest flex items-center gap-2🥨 藥物清單h3
+                      input type=text value={formData.medication} onChange={e = setFormData({...formData, medication e.target.value})} className=w-full px-5 py-4 bg-white rounded-[2rem] outline-none font-bold text-xs shadow-sm placeholder=藥品名稱 
+                      div className=grid grid-cols-2 gap-3
+                        input type=text value={formData.frequency} onChange={e = setFormData({...formData, frequency e.target.value})} className=w-full px-5 py-4 bg-white rounded-[2rem] outline-none font-bold text-xs shadow-sm placeholder=頻率 
+                        input type=text value={formData.medDuration} onChange={e = setFormData({...formData, medDuration e.target.value})} className=w-full px-5 py-4 bg-white rounded-[2rem] outline-none font-bold text-xs shadow-sm placeholder=期限(如長期) 
+                      div
+                    div
+                  div
+                div
+
+                div className=flex gap-4 pt-4
+                  {editingRecord && (
+                    button type=button onClick={() = handleDelete(editingRecord.id)} className=p-6 bg-[#f5f2e9] text-[#ccd5ae] rounded-[2.5rem] hoverbg-[#faedcd] transition-all hoverscale-105 shadow-sm
+                      Trash2 size={28} 
+                    button
+                  )}
+                  button type=submit className=flex-1 py-6 bg-[#d4a373] text-white font-black text-xl rounded-[2.5rem] shadow-xl hoverbg-[#a98467] activescale-95 transition-all
+                    蓋章紀錄 🍂
+                  button
+                div
+              form
+            div
+          div
+        div
+      )}
+
+      { Global CSS for font and animations }
+      style dangerouslySetInnerHTML={{ __html `
+        @import url('httpsfonts.googleapis.comcss2family=ZCOOL+KuaiLe&family=M+PLUS+Rounded+1cwght@700;900&display=swap');
+        
+        .cute-font {
+          font-family 'M PLUS Rounded 1c', 'Comic Sans MS', 'Chalkboard SE', 'Microsoft JhengHei', cursive, sans-serif;
+        }
+
+        @keyframes bounce-slow {
+          0%, 100% { transform translateY(0); }
+          50% { transform translateY(-8px); }
+        }
+        .animate-bounce-slow { animation bounce-slow 4s infinite ease-in-out; }
+        @keyframes spin-slow {
+          from { transform rotate(0deg); }
+          to { transform rotate(360deg); }
+        }
+        .animate-spin-slow { animation spin-slow 30s linear infinite; }
+      `}} 
+    div
+  );
+}
+
+function ChartCard({ title, icon, children }) {
+  return (
+    div className=bg-white p-6 rounded-[3.5rem] shadow-sm border border-[#faedcd]50 space-y-4 transition-all hovershadow-2xl hover-translate-y-2 relative group overflow-hidden
+      div className=absolute -top-4 -right-4 p-8 opacity-5 text-8xl pointer-events-none group-hoverrotate-45 transition-transform text-[#d4a373]🍂div
+      div className=flex items-center gap-3 border-b-2 border-dotted border-[#faedcd] pb-3
+        {icon && div className=text-[#d4a373]{icon}div}
+        h3 className=font-black text-[#a98467] text-[11px] tracking-[0.2em] uppercase{title}h3
+      div
+      div className=pt-2{children}div
+    div
+  );
+}
