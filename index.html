@@ -163,6 +163,7 @@
             const [selectedDate, setSelectedDate] = useState(null);
             const [editingRecord, setEditingRecord] = useState(null);
             const [loading, setLoading] = useState(true);
+            const [isSaving, setIsSaving] = useState(false);
 
             const [formData, setFormData] = useState({ memberId: 'dad', hospital: '', department: '', problem: '', systolic: '', diastolic: '', heartRate: '', weight: '', medication: '', frequency: '' });
 
@@ -229,11 +230,26 @@
 
             const handleSubmit = async (e) => {
                 e.preventDefault();
-                const path = window.FirebaseSDK.collection(db, 'artifacts', appId, 'users', user.uid, 'health_records');
-                const data = { ...formData, date: selectedDate, updatedAt: new Date().toISOString() };
-                if (editingRecord) await window.FirebaseSDK.setDoc(window.FirebaseSDK.doc(db, 'artifacts', appId, 'users', user.uid, 'health_records', editingRecord.id), data);
-                else await window.FirebaseSDK.addDoc(path, data);
-                setIsModalOpen(false);
+                if (isSaving) return;
+
+                setIsSaving(true);
+                try {
+                    const path = window.FirebaseSDK.collection(db, 'artifacts', appId, 'users', user.uid, 'health_records');
+                    const data = { ...formData, date: selectedDate, updatedAt: new Date().toISOString() };
+                    
+                    if (editingRecord) {
+                        await window.FirebaseSDK.setDoc(window.FirebaseSDK.doc(db, 'artifacts', appId, 'users', user.uid, 'health_records', editingRecord.id), data);
+                    } else {
+                        await window.FirebaseSDK.addDoc(path, data);
+                    }
+                    
+                    setIsModalOpen(false);
+                } catch (error) {
+                    console.error("Save failed:", error);
+                    alert("儲存失敗！可能是 Firebase Rules 權限未開啟或網路問題。\n錯誤訊息：" + error.message);
+                } finally {
+                    setIsSaving(false);
+                }
             };
 
             const exportToCSV = () => {
@@ -542,7 +558,13 @@
 
                                         <div className="flex gap-6 pt-10 font-normal">
                                             {editingRecord && <button type="button" onClick={() => { if(confirm('確定刪除紀錄嗎？')) window.FirebaseSDK.deleteDoc(window.FirebaseSDK.doc(db, 'artifacts', appId, 'users', user.uid, 'health_records', editingRecord.id)); setIsModalOpen(false); }} className="p-6 bg-gray-50 text-gray-300 rounded-[2.5rem] hover:text-red-400 active:bg-red-50 transition-all"><Icon name="Trash2" size={32} /></button>}
-                                            <button type="submit" className="flex-1 py-6 bg-[#d4a373] text-white text-2xl rounded-[2.5rem] shadow-2xl hover:bg-[#a98467] active:scale-95 transition-all outline-none font-normal">儲存紀錄 🍂</button>
+                                            <button 
+                                                type="submit" 
+                                                disabled={isSaving}
+                                                className={`flex-1 py-6 text-white text-2xl rounded-[2.5rem] shadow-2xl transition-all active:scale-95 outline-none font-normal ${isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#d4a373] hover:bg-[#a98467]'}`}
+                                            >
+                                                {isSaving ? "正在儲存..." : "儲存紀錄 🍂"}
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
