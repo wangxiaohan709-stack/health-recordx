@@ -186,17 +186,30 @@
             useEffect(() => {
                 if (!user || !db) return;
                 
+                // 紀錄監聽
                 const qRecords = window.FirebaseSDK.collection(db, 'artifacts', appId, 'users', user.uid, 'health_records');
                 const unsubRecords = window.FirebaseSDK.onSnapshot(qRecords, (snapshot) => {
                     setRecords(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
                 });
 
+                // 成員監聽
                 const qMembers = window.FirebaseSDK.collection(db, 'artifacts', appId, 'users', user.uid, 'family_members');
                 const unsubMembers = window.FirebaseSDK.onSnapshot(qMembers, (snapshot) => {
                     const memberList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    setMembers(memberList);
-                    if (memberList.length > 0 && !formData.memberId) {
-                        setFormData(prev => ({ ...prev, memberId: memberList[0].id }));
+                    
+                    // 如果是新帳號（成員名單為空），自動初始化「爸爸」與「媽媽」
+                    if (snapshot.empty) {
+                        const initMembers = async () => {
+                            const path = window.FirebaseSDK.collection(db, 'artifacts', appId, 'users', user.uid, 'family_members');
+                            await window.FirebaseSDK.addDoc(path, { name: '爸爸', color: '#bae6fd', createdAt: new Date().toISOString() });
+                            await window.FirebaseSDK.addDoc(path, { name: '媽媽', color: '#fbcfe8', createdAt: new Date().toISOString() });
+                        };
+                        initMembers();
+                    } else {
+                        setMembers(memberList);
+                        if (memberList.length > 0 && !formData.memberId) {
+                            setFormData(prev => ({ ...prev, memberId: memberList[0].id }));
+                        }
                     }
                 });
 
@@ -230,12 +243,31 @@
 
             const handleSubmit = async (e) => {
                 e.preventDefault();
-                if (!formData.memberId) { alert("請先新增並選擇一位成員！"); return; }
+                if (!formData.memberId) { alert("請先選擇一位成員！"); return; }
                 const path = window.FirebaseSDK.collection(db, 'artifacts', appId, 'users', user.uid, 'health_records');
                 const data = { ...formData, date: selectedDate, updatedAt: new Date().toISOString() };
                 if (editingRecord) await window.FirebaseSDK.setDoc(window.FirebaseSDK.doc(db, 'artifacts', appId, 'users', user.uid, 'health_records', editingRecord.id), data);
                 else await window.FirebaseSDK.addDoc(path, data);
                 setIsModalOpen(false);
+            };
+
+            const exportToCSV = () => {
+                if (records.length === 0) { alert("目前沒有紀錄可以匯出喔！"); return; }
+                const headers = ["日期", "成員", "醫院", "科別", "病症描述", "收縮壓", "舒張壓", "心跳", "體重", "藥品", "頻率"];
+                const csvRows = [headers, ...records.map(r => {
+                    const mName = members.find(m => m.id === r.memberId)?.name || "未知";
+                    return [
+                        r.date, mName, r.hospital || "", r.department || "", 
+                        (r.problem || "").replace(/\n/g, " "), r.systolic || "", r.diastolic || "", 
+                        r.heartRate || "", r.weight || "", r.medication || "", r.frequency || ""
+                    ];
+                })];
+                const csvContent = "\ufeff" + csvRows.map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `健康紀錄報表_${new Date().toLocaleDateString()}.csv`;
+                link.click();
             };
 
             const month = currentDate.getMonth();
@@ -279,10 +311,14 @@
                 <div className="min-h-screen pb-24">
                     {/* 頂部導航 */}
                     <header className="sticky top-0 z-30 px-6 py-4 bg-white/70 backdrop-blur-md border-b-2 border-dashed border-[#e9edc9] flex items-center justify-between">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-4">
                             <button onClick={() => setIsMemberModalOpen(true)} className="flex items-center gap-2 text-[#a98467] hover:scale-105 transition-transform">
                                 <Icon name="Users" size={28} />
                                 <span className="text-lg hidden sm:inline underline decoration-dotted">成員</span>
+                            </button>
+                            <button onClick={exportToCSV} className="flex items-center gap-2 text-[#a98467] hover:scale-105 transition-transform">
+                                <Icon name="FileDown" size={28} />
+                                <span className="text-lg hidden sm:inline underline decoration-dotted">匯出</span>
                             </button>
                             <button onClick={() => setIsInstallModalOpen(true)} className="flex items-center gap-2 text-indigo-400 hover:scale-105 transition-transform">
                                 <Icon name="Download" size={28} />
@@ -323,13 +359,13 @@
                                             </div>
                                         </div>
                                     );
-                                }) : <p className="col-span-full text-center py-10 opacity-40">請新增家人成員 🌳</p>}
+                                }) : <p className="col-span-full text-center py-10 opacity-40 italic font-normal">正在初始化您的健康空間... 🌳</p>}
                             </div>
                         </section>
 
                         {/* 月曆 */}
                         <section className="bg-white rounded-[3rem] shadow-xl border-4 border-white outline outline-1 outline-[#faedcd] overflow-hidden">
-                            <div className="grid grid-cols-7 bg-[#fefae0]/40 border-b-2 border-dashed border-[#faedcd] text-[#d4a373]">
+                            <div className="grid grid-cols-7 bg-[#fefae0]/40 border-b-2 border-dashed border-[#faedcd] font-normal text-[#d4a373]">
                                 {WEEKDAYS.map(day => <div key={day} className="py-4 text-center text-sm">{day}</div>)}
                             </div>
                             <div className="grid grid-cols-7">
@@ -444,6 +480,7 @@
                                         </div>
                                     ))}
                                 </div>
+                                <p className="mt-4 text-xs text-slate-300 text-center font-normal">點擊顏色圓圈可自行挑選成員代表色 🎨</p>
                             </div>
                         </div>
                     )}
@@ -472,7 +509,7 @@
                                             <li>點擊「安裝應用程式」或「新增至主畫面」</li>
                                         </ol>
                                     </div>
-                                    <p className="text-sm bg-indigo-50 p-4 rounded-2xl text-indigo-400 italic">安裝後開啟將具備「全螢幕」App 體驗，不再顯示網址列 🌿</p>
+                                    <p className="text-sm bg-indigo-50 p-4 rounded-2xl text-indigo-400 italic font-normal">安裝後開啟將具備「全螢幕」App 體驗，不再顯示網址列 🌿</p>
                                 </div>
                             </div>
                         </div>
@@ -498,32 +535,32 @@
                                                     {m.name}
                                                 </button>
                                             ))}
-                                            {members.length === 0 && <p className="text-red-400 text-lg">請先新增成員！</p>}
+                                            {members.length === 0 && <p className="text-slate-400 text-lg italic">正在載入成員名單...</p>}
                                         </div>
 
                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                                             <div className="space-y-8">
                                                 <label className="block text-[#ccd5ae] italic text-lg">就診描述</label>
-                                                <input type="text" value={formData.hospital} onChange={e => setFormData({...formData, hospital: e.target.value})} className="w-full px-6 py-5 bg-[#f5f2e9] rounded-[2rem] outline-none text-xl" placeholder="醫院名稱" />
-                                                <input type="text" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} className="w-full px-6 py-5 bg-[#f5f2e9] rounded-[2rem] outline-none text-xl" placeholder="就診科別" />
-                                                <textarea value={formData.problem} onChange={e => setFormData({...formData, problem: e.target.value})} className="w-full px-6 py-5 bg-[#f5f2e9] rounded-[2rem] outline-none h-40 text-xl" placeholder="身體狀況描述..."></textarea>
+                                                <input type="text" value={formData.hospital} onChange={e => setFormData({...formData, hospital: e.target.value})} className="w-full px-6 py-5 bg-[#f5f2e9] rounded-[2rem] outline-none text-xl font-normal" placeholder="醫院名稱" />
+                                                <input type="text" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} className="w-full px-6 py-5 bg-[#f5f2e9] rounded-[2rem] outline-none text-xl font-normal" placeholder="就診科別" />
+                                                <textarea value={formData.problem} onChange={e => setFormData({...formData, problem: e.target.value})} className="w-full px-6 py-5 bg-[#f5f2e9] rounded-[2rem] outline-none h-40 text-xl font-normal" placeholder="身體狀況描述..."></textarea>
                                             </div>
                                             
                                             <div className="space-y-10">
                                                 <div className="bg-[#fefae0] p-8 rounded-[3rem] border-2 border-dashed border-[#faedcd] space-y-6 shadow-sm">
                                                     <h3 className="text-[#d4a373] text-lg tracking-widest uppercase flex items-center gap-3">身體數據</h3>
                                                     <div className="grid grid-cols-2 gap-5">
-                                                        <div className="bg-white p-4 rounded-2xl text-center shadow-sm"><label className="text-xs text-[#ccd5ae] block mb-1">收縮壓</label><input type="number" value={formData.systolic} onChange={e => setFormData({...formData, systolic: e.target.value})} className="w-full outline-none text-2xl text-center text-[#a98467]" /></div>
-                                                        <div className="bg-white p-4 rounded-2xl text-center shadow-sm"><label className="text-xs text-[#ccd5ae] block mb-1">舒張壓</label><input type="number" value={formData.diastolic} onChange={e => setFormData({...formData, diastolic: e.target.value})} className="w-full outline-none text-2xl text-center text-[#a98467]" /></div>
-                                                        <div className="bg-white p-4 rounded-2xl text-center shadow-sm"><label className="text-xs text-[#ccd5ae] block mb-1">心跳</label><input type="number" value={formData.heartRate} onChange={e => setFormData({...formData, heartRate: e.target.value})} className="w-full outline-none text-2xl text-center text-[#a98467]" /></div>
-                                                        <div className="bg-white p-4 rounded-2xl text-center shadow-sm"><label className="text-xs text-[#ccd5ae] block mb-1">體重</label><input type="number" step="0.1" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} className="w-full outline-none text-2xl text-center text-[#a98467]" /></div>
+                                                        <div className="bg-white p-4 rounded-2xl text-center shadow-sm"><label className="text-xs text-[#ccd5ae] block mb-1">收縮壓</label><input type="number" value={formData.systolic} onChange={e => setFormData({...formData, systolic: e.target.value})} className="w-full outline-none text-2xl text-center text-[#a98467] font-normal" /></div>
+                                                        <div className="bg-white p-4 rounded-2xl text-center shadow-sm"><label className="text-xs text-[#ccd5ae] block mb-1">舒張壓</label><input type="number" value={formData.diastolic} onChange={e => setFormData({...formData, diastolic: e.target.value})} className="w-full outline-none text-2xl text-center text-[#a98467] font-normal" /></div>
+                                                        <div className="bg-white p-4 rounded-2xl text-center shadow-sm"><label className="text-xs text-[#ccd5ae] block mb-1">心跳</label><input type="number" value={formData.heartRate} onChange={e => setFormData({...formData, heartRate: e.target.value})} className="w-full outline-none text-2xl text-center text-[#a98467] font-normal" /></div>
+                                                        <div className="bg-white p-4 rounded-2xl text-center shadow-sm"><label className="text-xs text-[#ccd5ae] block mb-1">體重</label><input type="number" step="0.1" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} className="w-full outline-none text-2xl text-center text-[#a98467] font-normal" /></div>
                                                     </div>
                                                 </div>
 
                                                 <div className="bg-[#e9edc9]/40 p-8 rounded-[3rem] border-2 border-dashed border-[#ccd5ae] space-y-5">
                                                     <h3 className="text-[#6b705c] text-lg tracking-widest uppercase flex items-center gap-3">藥物紀錄</h3>
-                                                    <input type="text" value={formData.medication} onChange={e => setFormData({...formData, medication: e.target.value})} className="w-full px-6 py-4 bg-white rounded-2xl outline-none text-xl shadow-sm" placeholder="藥品名稱" />
-                                                    <input type="text" value={formData.frequency} onChange={e => setFormData({...formData, frequency: e.target.value})} className="w-full px-6 py-4 bg-white rounded-2xl outline-none text-xl shadow-sm" placeholder="服用頻率" />
+                                                    <input type="text" value={formData.medication} onChange={e => setFormData({...formData, medication: e.target.value})} className="w-full px-6 py-4 bg-white rounded-2xl outline-none text-xl shadow-sm font-normal" placeholder="藥品名稱" />
+                                                    <input type="text" value={formData.frequency} onChange={e => setFormData({...formData, frequency: e.target.value})} className="w-full px-6 py-4 bg-white rounded-2xl outline-none text-xl shadow-sm font-normal" placeholder="服用頻率" />
                                                 </div>
                                             </div>
                                         </div>
