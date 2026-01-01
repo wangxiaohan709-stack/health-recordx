@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>全家身體紀錄 2026</title>
+    <title>全家身體紀錄 2026 🐾</title>
     
     <!-- PWA 桌面化關鍵標籤 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="家族健康">
-    <meta name="theme-color" content="#f5f2e9">
+    <meta name="theme-color" content="#fdfcf0">
     
     <!-- 基礎函式庫 -->
     <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
@@ -25,30 +25,30 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- 載入圓潤字體 -->
-    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400&family=Noto+Sans+TC:wght@400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Noto+Sans+TC:wght@400&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg-earth: #f5f2e9;
-            --accent-brown: #a98467;
-            --border-cream: #faedcd;
+            --bg-cat: #fdfcf0;
+            --accent-warm: #ffb4a2;
+            --cat-brown: #6d597a;
+            --soft-pink: #ffcdb2;
         }
 
-        /* 絕對強制：全域字體一致、絕無粗體、文字全面放大 */
+        /* 絕對強制：全域字體一致、圓潤視覺 */
         * {
             font-family: 'M PLUS Rounded 1c', 'Noto Sans TC', sans-serif !important;
             font-weight: 400 !important;
-            text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--bg-earth);
-            color: #6b705c;
+            background-color: var(--bg-cat);
+            color: var(--cat-brown);
             margin: 0;
             padding: 0;
-            font-size: 20px; 
+            font-size: 18px; 
             overscroll-behavior-y: contain;
         }
 
@@ -56,44 +56,58 @@
             font-weight: 400 !important;
         }
 
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-earth); }
-        ::-webkit-scrollbar-thumb { background: var(--border-cream); border-radius: 10px; }
+        /* 自定義捲軸 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-cat); }
+        ::-webkit-scrollbar-thumb { background: var(--soft-pink); border-radius: 10px; }
         
-        @keyframes bounce-slow {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
+        /* 貓耳朵裝飾 */
+        .cat-ears::before, .cat-ears::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            width: 40px;
+            height: 30px;
+            background: white;
+            border: 4px solid white;
+            border-radius: 50% 50% 0 0;
+            z-index: -1;
         }
-        .animate-bounce-slow { animation: bounce-slow 4s infinite ease-in-out; }
-        
-        @keyframes spin-slow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .cat-ears::before { left: 30px; transform: rotate(-15deg); border-top-left-radius: 100px; }
+        .cat-ears::after { right: 30px; transform: rotate(15deg); border-top-right-radius: 100px; }
+
+        @keyframes purr {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
         }
-        .animate-spin-slow { animation: spin-slow 30s linear infinite; }
-
-        .recharts-cartesian-axis-tick-value { font-size: 14px !important; fill: #a98467; }
-        .recharts-tooltip-label, .recharts-tooltip-item-name, .recharts-tooltip-item-value { font-size: 16px !important; }
+        .animate-purr { animation: purr 3s infinite ease-in-out; }
         
-        .med-card { word-wrap: break-word; overflow-wrap: break-word; line-height: 1.6; }
-
-        .modal-fade-in { animation: fadeIn 0.3s ease-out; }
+        .modal-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         input[type="color"] {
             -webkit-appearance: none;
             border: none;
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             cursor: pointer;
             background: transparent;
         }
-        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-        input[type="color"]::-webkit-color-swatch { border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        input[type="color"]::-webkit-color-swatch { border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        .cat-card {
+            background: white;
+            border-radius: 2.5rem;
+            box-shadow: 0 10px 30px -10px rgba(109, 89, 122, 0.1);
+            transition: all 0.3s ease;
+        }
+        .cat-card:hover {
+            transform: translateY(-5px);
+        }
     </style>
 </head>
 <body>
@@ -111,13 +125,18 @@
         const { useState, useEffect, useMemo, Fragment, useRef } = React;
         const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } = window.Recharts;
 
-        // 預設成員基礎資料
-        const DEFAULT_MEMBERS = [
-            { id: 'dad', name: '爸爸', defaultColor: '#bae6fd' },
-            { id: 'mom', name: '媽媽', defaultColor: '#fbcfe8' }
-        ];
+        // 貓貓頭像 SVG
+        const CatHead = ({ color = "#6d597a", size = 40 }) => (
+            <svg width={size} height={size} viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M40 80L20 20L80 50C90 45 110 45 120 50L180 20L160 80C180 100 180 140 160 160C140 180 60 180 40 160C20 140 20 100 40 80Z" fill="white" stroke={color} strokeWidth="8" />
+                <circle cx="70" cy="110" r="10" fill={color} />
+                <circle cx="130" cy="110" r="10" fill={color} />
+                <path d="M90 130C100 140 110 130 110 130" stroke={color} strokeWidth="6" strokeLinecap="round" />
+                <path d="M100 130L100 120" stroke={color} strokeWidth="6" strokeLinecap="round" />
+            </svg>
+        );
 
-        const Icon = ({ name, size = 32, className = "" }) => {
+        const Icon = ({ name, size = 28, className = "" }) => {
             const containerRef = useRef(null);
             useEffect(() => {
                 if (window.lucide && containerRef.current) {
@@ -153,8 +172,7 @@
             const [db, setDb] = useState(null);
             const [auth, setAuth] = useState(null);
             const [records, setRecords] = useState([]);
-            // 用於儲存爸爸媽媽顏色的 State
-            const [memberColors, setMemberColors] = useState({ dad: '#bae6fd', mom: '#fbcfe8' });
+            const [members, setMembers] = useState([]);
             
             const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
             const [isModalOpen, setIsModalOpen] = useState(false);
@@ -165,9 +183,10 @@
             const [loading, setLoading] = useState(true);
             const [isSaving, setIsSaving] = useState(false);
 
-            const [formData, setFormData] = useState({ memberId: 'dad', hospital: '', department: '', problem: '', systolic: '', diastolic: '', heartRate: '', weight: '', medication: '', frequency: '' });
+            const [newMemberForm, setNewMemberForm] = useState({ name: '', color: '#ffb4a2' });
+            const [formData, setFormData] = useState({ memberId: '', hospital: '', department: '', problem: '', systolic: '', diastolic: '', heartRate: '', weight: '', medication: '', frequency: '' });
 
-            const appId = 'health-diary-family-2026-v3';
+            const appId = 'health-diary-cat-v2026';
 
             useEffect(() => {
                 const initFirebase = () => {
@@ -177,7 +196,6 @@
                         const fireauth = window.FirebaseSDK.getAuth(app);
                         setDb(firestore);
                         setAuth(fireauth);
-
                         window.FirebaseSDK.onAuthStateChanged(fireauth, (u) => {
                             setUser(u);
                             setLoading(false);
@@ -187,87 +205,79 @@
                 initFirebase();
             }, []);
 
-            // 同步紀錄與顏色設定
             useEffect(() => {
                 if (!user || !db) return;
-                
-                // 1. 同步健康紀錄
                 const qRecords = window.FirebaseSDK.collection(db, 'artifacts', appId, 'users', user.uid, 'health_records');
                 const unsubRecords = window.FirebaseSDK.onSnapshot(qRecords, (snapshot) => {
                     setRecords(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
                 });
-
-                // 2. 同步成員顏色設定
-                const colorDocRef = window.FirebaseSDK.doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'memberColors');
-                const unsubColors = window.FirebaseSDK.onSnapshot(colorDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        setMemberColors(docSnap.data());
+                const qMembers = window.FirebaseSDK.collection(db, 'artifacts', appId, 'users', user.uid, 'members');
+                const unsubMembers = window.FirebaseSDK.onSnapshot(qMembers, (snapshot) => {
+                    const memberList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    if (snapshot.empty) {
+                        const initDefault = async () => {
+                            const ref = window.FirebaseSDK.collection(db, 'artifacts', appId, 'users', user.uid, 'members');
+                            await window.FirebaseSDK.addDoc(ref, { name: '爸爸', color: '#bae6fd' });
+                            await window.FirebaseSDK.addDoc(ref, { name: '媽媽', color: '#fbcfe8' });
+                        };
+                        initDefault();
+                    } else {
+                        setMembers(memberList);
+                        if (!formData.memberId && memberList.length > 0) {
+                            setFormData(prev => ({ ...prev, memberId: memberList[0].id }));
+                        }
                     }
                 });
-
-                return () => { unsubRecords(); unsubColors(); };
-            }, [user, db]);
-
-            // 計算最終成員清單 (結合固定名單與自訂顏色)
-            const members = useMemo(() => {
-                return DEFAULT_MEMBERS.map(m => ({
-                    ...m,
-                    color: memberColors[m.id] || m.defaultColor
-                }));
-            }, [memberColors]);
+                return () => { unsubRecords(); unsubMembers(); };
+            }, [user, db, formData.memberId]);
 
             const login = async () => {
                 const provider = new window.FirebaseSDK.GoogleAuthProvider();
                 try { await window.FirebaseSDK.signInWithPopup(auth, provider); } catch (err) { alert(err.message); }
             };
 
-            const updateColor = async (id, newColor) => {
-                if (!db || !user) return;
-                const newSettings = { ...memberColors, [id]: newColor };
-                const colorDocRef = window.FirebaseSDK.doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'memberColors');
-                await window.FirebaseSDK.setDoc(colorDocRef, newSettings);
+            const addMember = async () => {
+                if (!newMemberForm.name.trim()) return;
+                const ref = window.FirebaseSDK.collection(db, 'artifacts', appId, 'users', user.uid, 'members');
+                await window.FirebaseSDK.addDoc(ref, newMemberForm);
+                setNewMemberForm({ name: '', color: '#ffb4a2' });
+            };
+
+            const deleteMember = async (id) => {
+                if (window.confirm("要移除這位成員嗎？紀錄會保留喔！")) {
+                    await window.FirebaseSDK.deleteDoc(window.FirebaseSDK.doc(db, 'artifacts', appId, 'users', user.uid, 'members', id));
+                }
+            };
+
+            const updateMember = async (id, field, value) => {
+                const ref = window.FirebaseSDK.doc(db, 'artifacts', appId, 'users', user.uid, 'members', id);
+                await window.FirebaseSDK.setDoc(ref, { [field]: value }, { merge: true });
             };
 
             const handleSubmit = async (e) => {
                 e.preventDefault();
-                if (isSaving) return;
-
+                if (isSaving || !formData.memberId) return;
                 setIsSaving(true);
                 try {
                     const path = window.FirebaseSDK.collection(db, 'artifacts', appId, 'users', user.uid, 'health_records');
                     const data = { ...formData, date: selectedDate, updatedAt: new Date().toISOString() };
-                    
-                    if (editingRecord) {
-                        await window.FirebaseSDK.setDoc(window.FirebaseSDK.doc(db, 'artifacts', appId, 'users', user.uid, 'health_records', editingRecord.id), data);
-                    } else {
-                        await window.FirebaseSDK.addDoc(path, data);
-                    }
-                    
+                    if (editingRecord) await window.FirebaseSDK.setDoc(window.FirebaseSDK.doc(db, 'artifacts', appId, 'users', user.uid, 'health_records', editingRecord.id), data);
+                    else await window.FirebaseSDK.addDoc(path, data);
                     setIsModalOpen(false);
-                } catch (error) {
-                    console.error("Save failed:", error);
-                    alert("儲存失敗！可能是 Firebase Rules 權限未開啟或網路問題。\n錯誤訊息：" + error.message);
-                } finally {
-                    setIsSaving(false);
-                }
+                } catch (error) { alert("儲存失敗： " + error.message); } finally { setIsSaving(false); }
             };
 
             const exportToCSV = () => {
-                if (records.length === 0) { alert("目前沒有紀錄可以匯出喔！"); return; }
-                const headers = ["日期", "成員", "醫院", "科別", "病症描述", "收縮壓", "舒張壓", "心跳", "體重", "藥品", "頻率"];
+                if (records.length === 0) return;
+                const headers = ["日期", "成員", "醫院", "科別", "描述", "收縮壓", "舒張壓", "心跳", "體重", "藥品", "頻率"];
                 const csvRows = [headers, ...records.map(r => {
                     const mName = members.find(m => m.id === r.memberId)?.name || "未知";
-                    return [
-                        r.date, mName, r.hospital || "", r.department || "", 
-                        (r.problem || "").replace(/\n/g, " "), r.systolic || "", r.diastolic || "", 
-                        r.heartRate || "", r.weight || "", r.medication || "", r.frequency || ""
-                    ];
+                    return [r.date, mName, r.hospital || "", r.department || "", (r.problem || "").replace(/\n/g, " "), r.systolic || "", r.diastolic || "", r.heartRate || "", r.weight || "", r.medication || "", r.frequency || ""];
                 })];
-                const csvContent = "\ufeff" + csvRows.map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const blob = new Blob(["\ufeff" + csvRows.map(row => row.map(cell => `"${cell}"`).join(",")).join("\n")], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
-                link.download = `家族健康紀錄_${new Date().toLocaleDateString()}.csv`;
+                link.download = `貓貓健康報表_${new Date().toLocaleDateString()}.csv`;
                 link.click();
             };
 
@@ -295,13 +305,13 @@
 
             if (!user) {
                 return (
-                    <div className="min-h-screen flex items-center justify-center p-8 bg-[#f5f2e9]">
-                        <div className="bg-white rounded-[3rem] border-4 border-dashed border-[#faedcd] p-10 text-center max-w-xl w-full shadow-2xl">
-                            <Icon name="Heart" size={80} className="text-pink-300 mx-auto mb-6 animate-bounce-slow" />
-                            <h1 className="text-4xl text-[#a98467] mb-4 font-normal">全家身體紀錄 2026</h1>
-                            <p className="text-slate-400 mb-10 text-xl font-normal">登入 Google 帳號開啟私有同步空間 🌳</p>
-                            <button onClick={login} className="w-full py-6 bg-white border-2 border-[#faedcd] text-[#a98467] rounded-full text-2xl hover:bg-[#fefae0] transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95">
-                                <Icon name="LogIn" size={36} /> Google 帳號登入
+                    <div className="min-h-screen flex items-center justify-center p-8 bg-[#fdfcf0]">
+                        <div className="bg-white rounded-[4rem] border-8 border-[#ffcdb2] p-12 text-center max-w-xl w-full shadow-2xl animate-purr relative">
+                            <div className="absolute -top-12 left-1/2 -translate-x-1/2"><CatHead size={100} color="#ffb4a2" /></div>
+                            <h1 className="text-4xl text-[#6d597a] mt-8 mb-4 font-bold tracking-tight">家族紀錄 🐾</h1>
+                            <p className="text-[#b5838d] mb-10 text-xl">請登入 Google<br/>開啟您的溫馨家族空間</p>
+                            <button onClick={login} className="w-full py-6 bg-[#ffb4a2] text-white rounded-full text-2xl hover:bg-[#e5989b] transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95">
+                                <Icon name="Cat" size={36} /> 登入小窩
                             </button>
                         </div>
                     </div>
@@ -310,53 +320,60 @@
 
             return (
                 <div className="min-h-screen pb-24">
-                    {/* 頂部導航 */}
-                    <header className="sticky top-0 z-30 px-6 py-4 bg-white/70 backdrop-blur-md border-b-2 border-dashed border-[#e9edc9] flex items-center justify-between">
-                        <div className="flex items-center gap-2 sm:gap-4">
-                            <button onClick={() => setIsSettingsModalOpen(true)} className="flex items-center gap-2 text-[#a98467] hover:scale-105 transition-transform">
-                                <Icon name="Palette" size={28} />
-                                <span className="text-lg hidden sm:inline underline decoration-dotted">成員設定</span>
-                            </button>
-                            <button onClick={exportToCSV} className="flex items-center gap-2 text-[#a98467] hover:scale-105 transition-transform">
-                                <Icon name="FileDown" size={28} />
-                                <span className="text-lg hidden sm:inline underline decoration-dotted">匯出</span>
-                            </button>
-                            <button onClick={() => setIsInstallModalOpen(true)} className="flex items-center gap-2 text-indigo-400 hover:scale-105 transition-transform">
-                                <Icon name="Download" size={28} />
-                                <span className="text-lg hidden sm:inline underline decoration-dotted">安裝</span>
-                            </button>
+                    {/* 頂部貓貓導航 */}
+                    <header className="sticky top-0 z-30 px-6 py-4 bg-white/80 backdrop-blur-lg border-b-4 border-[#ffcdb2] flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <CatHead size={48} color="#6d597a" />
+                            <h1 className="text-2xl hidden md:block font-bold">健康紀錄窩</h1>
                         </div>
                         
-                        <div className="flex items-center gap-3 sm:gap-6 bg-[#fefae0] rounded-full px-4 py-2 border border-[#faedcd] shadow-sm">
-                            <button onClick={() => setCurrentDate(new Date(year, month - 1, 1))} className="text-[#d4a373]"><Icon name="ChevronLeft" size={28} /></button>
-                            <span className="text-xl sm:text-2xl min-w-[110px] text-center font-normal">{year} / {MONTH_NAMES[month]}</span>
-                            <button onClick={() => setCurrentDate(new Date(year, month + 1, 1))} className="text-[#d4a373]"><Icon name="ChevronRight" size={28} /></button>
+                        <div className="flex items-center gap-2 sm:gap-4 bg-white/50 rounded-full p-1">
+                            <button onClick={() => setIsSettingsModalOpen(true)} className="p-3 hover:bg-[#ffcdb2]/20 rounded-full transition-all text-[#6d597a]">
+                                <Icon name="Users" size={28} />
+                            </button>
+                            <button onClick={exportToCSV} className="p-3 hover:bg-[#ffcdb2]/20 rounded-full transition-all text-[#6d597a]">
+                                <Icon name="FileDown" size={28} />
+                            </button>
+                            <button onClick={() => setIsInstallModalOpen(true)} className="p-3 hover:bg-[#ffcdb2]/20 rounded-full transition-all text-[#6d597a]">
+                                <Icon name="Smartphone" size={28} />
+                            </button>
                         </div>
 
-                        <button onClick={() => window.FirebaseSDK.signOut(auth)} className="p-2 text-[#a98467] opacity-60"><Icon name="LogOut" size={28} /></button>
+                        <div className="flex items-center gap-4 bg-[#fdfcf0] rounded-full px-5 py-2 border-2 border-[#ffcdb2] shadow-sm">
+                            <button onClick={() => setCurrentDate(new Date(year, month - 1, 1))} className="text-[#b5838d]"><Icon name="ChevronLeft" /></button>
+                            <span className="text-xl min-w-[100px] text-center font-bold tracking-tighter">{year} / {MONTH_NAMES[month]}</span>
+                            <button onClick={() => setCurrentDate(new Date(year, month + 1, 1))} className="text-[#b5838d]"><Icon name="ChevronRight" /></button>
+                        </div>
+                        
+                        <button onClick={() => window.FirebaseSDK.signOut(auth)} className="p-3 text-[#6d597a] opacity-50 hover:opacity-100"><Icon name="LogOut" size={24} /></button>
                     </header>
 
-                    <main className="max-w-6xl mx-auto p-4 sm:p-6 space-y-10">
+                    <main className="max-w-6xl mx-auto p-4 sm:p-8 space-y-12">
                         
                         {/* 藥箱摘要 */}
-                        <section className="bg-white rounded-[3rem] p-8 shadow-sm border-2 border-dashed border-[#faedcd] relative">
-                            <div className="absolute -top-6 left-8 bg-[#f5f2e9] px-6 py-1 flex items-center gap-3 text-[#a98467] z-10 font-normal"><Icon name="Pill" size={32} /><h2 className="text-2xl">成員藥箱 💊</h2></div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
+                        <section className="relative">
+                            <div className="flex items-center gap-3 mb-6 px-4">
+                                <Icon name="Pill" className="text-[#ffb4a2]" /><h2 className="text-2xl font-bold">家族成員藥箱 💊</h2>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {members.map(m => {
                                     const medRecords = records.filter(r => r.memberId === m.id && r.medication);
                                     return (
-                                        <div key={m.id} className="rounded-[2.5rem] p-6 border-2 border-white shadow-sm relative med-card" style={{ backgroundColor: `${m.color}20`, borderColor: `${m.color}40` }}>
-                                            <div className="flex items-center gap-3 mb-4 text-xl" style={{ color: m.color }}>
-                                                <div className="w-5 h-5 rounded-full border-2 border-white shadow-inner" style={{ backgroundColor: m.color }}></div>
-                                                <span className="font-normal">{m.name}</span>
+                                        <div key={m.id} className="cat-card p-8 border-t-8" style={{ borderTopColor: m.color }}>
+                                            <div className="flex items-center justify-between mb-6">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: m.color }}></div>
+                                                    <span className="text-2xl font-bold tracking-tight">{m.name}</span>
+                                                </div>
+                                                <Icon name="Heart" className="text-[#ffcdb2]" size={20} />
                                             </div>
-                                            <div className="space-y-3">
+                                            <div className="space-y-4">
                                                 {medRecords.length > 0 ? medRecords.slice(0, 3).map((med, idx) => (
-                                                    <div key={idx} className="bg-white/80 p-4 rounded-2xl shadow-sm border border-white/50">
-                                                        <div className="text-slate-700 border-b border-gray-100 pb-1 mb-1 text-lg font-normal">{med.medication}</div>
-                                                        <div className="text-slate-400 text-sm italic font-normal">頻率：{med.frequency || '--'}</div>
+                                                    <div key={idx} className="bg-[#fdfcf0] p-4 rounded-2xl border border-gray-100 shadow-sm">
+                                                        <div className="text-[#6d597a] font-bold border-b border-white pb-2 mb-2">{med.medication}</div>
+                                                        <div className="text-[#b5838d] text-sm font-medium italic">頻率：{med.frequency || '--'}</div>
                                                     </div>
-                                                )) : <p className="text-sm opacity-30 italic text-center py-4 font-normal">尚無藥物紀錄</p>}
+                                                )) : <p className="text-sm text-gray-300 italic py-4 text-center">乖乖沒吃藥藥 🍃</p>}
                                             </div>
                                         </div>
                                     );
@@ -365,12 +382,12 @@
                         </section>
 
                         {/* 月曆 */}
-                        <section className="bg-white rounded-[3rem] shadow-xl border-4 border-white outline outline-1 outline-[#faedcd] overflow-hidden font-normal">
-                            <div className="grid grid-cols-7 bg-[#fefae0]/40 border-b-2 border-dashed border-[#faedcd] text-[#d4a373]">
+                        <section className="cat-card overflow-hidden border-8 border-white outline outline-4 outline-[#ffcdb2]/30">
+                            <div className="grid grid-cols-7 bg-[#fdfcf0] border-b-2 border-dashed border-[#ffcdb2] text-[#b5838d] font-bold">
                                 {WEEKDAYS.map(day => <div key={day} className="py-4 text-center text-sm">{day}</div>)}
                             </div>
                             <div className="grid grid-cols-7">
-                                {[...Array(startingDay)].map((_, i) => <div key={`e-${i}`} className="min-h-[100px] bg-[#f5f2e9]/20 border-b border-r border-[#faedcd]/20" />)}
+                                {[...Array(startingDay)].map((_, i) => <div key={`e-${i}`} className="min-h-[100px] bg-[#fdfcf0]/30 border-b border-r border-[#ffcdb2]/10" />)}
                                 {[...Array(daysInMonth)].map((_, i) => {
                                     const d = i + 1;
                                     const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -378,16 +395,16 @@
                                     const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
                                     return (
                                         <div key={d} onClick={() => { setSelectedDate(dStr); setEditingRecord(null); setFormData(prev => ({ ...prev, hospital: '', department: '', problem: '', medication: '', frequency: '', systolic: '', diastolic: '', heartRate: '', weight: '' })); setIsModalOpen(true); }} 
-                                            className="min-h-[100px] border-b border-r border-[#faedcd]/10 p-2 hover:bg-[#e9edc9]/20 transition-all cursor-pointer">
-                                            <div className={`text-base w-9 h-9 flex items-center justify-center rounded-full mb-1 ${isToday ? 'bg-[#d4a373] text-white shadow-lg' : 'text-[#ccd5ae]'}`}>{d}</div>
-                                            <div className="flex flex-col gap-1">
+                                            className="min-h-[110px] border-b border-r border-[#ffcdb2]/10 p-2 hover:bg-[#ffcdb2]/5 transition-all cursor-pointer group">
+                                            <div className={`text-base w-9 h-9 flex items-center justify-center rounded-full mb-2 font-bold ${isToday ? 'bg-[#ffb4a2] text-white shadow-lg' : 'text-[#b5838d]'}`}>{d}</div>
+                                            <div className="flex flex-col gap-1.5">
                                                 {dayRecs.map(rec => {
                                                     const m = members.find(mem => mem.id === rec.memberId);
                                                     return (
                                                         <div key={rec.id} onClick={(e) => { e.stopPropagation(); setSelectedDate(rec.date); setEditingRecord(rec); setFormData(rec); setIsModalOpen(true); }} 
-                                                            className="text-[10px] px-1.5 py-1 rounded-lg text-white truncate shadow-sm font-normal" 
-                                                            style={{ backgroundColor: m?.color || '#a98467' }}>
-                                                            {rec.department || rec.hospital || '●'}
+                                                            className="text-[10px] px-2 py-1 rounded-xl text-white truncate shadow-sm font-bold tracking-tight" 
+                                                            style={{ backgroundColor: m?.color || '#6d597a' }}>
+                                                            {rec.department || rec.hospital || '🐾'}
                                                         </div>
                                                     );
                                                 })}
@@ -399,50 +416,47 @@
                         </section>
 
                         {/* 圖表分析 */}
-                        <section className="space-y-8">
-                            <div className="flex items-center gap-4 px-4 text-[#a98467] font-normal"><Icon name="Activity" /><h2 className="text-2xl italic">家族健康分析</h2><div className="flex-1 border-b-2 border-dotted border-[#faedcd]"></div></div>
-                            
-                            <div className="bg-white p-6 sm:p-10 rounded-[3rem] shadow-sm border border-[#faedcd] h-[400px]">
-                                <h3 className="text-xl mb-4 text-[#a98467] font-normal">血壓紀錄 (實線:收縮 / 虛線:舒張)</h3>
+                        <section className="space-y-10">
+                            <div className="flex items-center gap-4 px-4 text-[#6d597a]"><Icon name="Activity" /><h2 className="text-2xl font-bold italic tracking-wide">健康大數據</h2><div className="flex-1 border-b-4 border-dotted border-[#ffcdb2]"></div></div>
+                            <div className="cat-card p-10 h-[450px]">
+                                <h3 className="text-xl mb-6 text-[#b5838d] font-bold flex items-center gap-2"><Icon name="Activity" size={24} /> 血壓紀錄 (實:收縮 / 虛:舒張)</h3>
                                 <ResponsiveContainer width="100%" height="90%">
                                     <LineChart data={chartData}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#faedcd" />
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffcdb2" />
                                         <XAxis dataKey="displayDate" style={{fontSize: '12px'}} />
-                                        <YAxis width={40} domain={['dataMin - 5', 'dataMax + 5']} style={{fontSize: '12px'}} />
-                                        <Tooltip contentStyle={{ borderRadius: '20px', border: '1px solid #faedcd', backgroundColor: '#fff', fontSize: '14px' }} />
+                                        <YAxis width={40} domain={['dataMin - 10', 'dataMax + 10']} style={{fontSize: '12px'}} />
+                                        <Tooltip contentStyle={{ borderRadius: '25px', border: '3px solid #ffcdb2', backgroundColor: '#fff', fontSize: '14px', padding: '15px' }} />
                                         {members.map(m => (
                                             <Fragment key={m.id}>
-                                                <Line type="monotone" dataKey={`${m.id}_systolic`} stroke={m.color} strokeWidth={4} dot={{ r: 4 }} connectNulls />
-                                                <Line type="monotone" dataKey={`${m.id}_diastolic`} stroke={m.color} strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} connectNulls />
+                                                <Line name={`${m.name} 收縮`} type="monotone" dataKey={`${m.id}_systolic`} stroke={m.color} strokeWidth={5} dot={{ r: 5, fill: '#fff', strokeWidth: 3 }} connectNulls />
+                                                <Line name={`${m.name} 舒張`} type="monotone" dataKey={`${m.id}_diastolic`} stroke={m.color} strokeWidth={2} strokeDasharray="6 6" dot={{ r: 4 }} connectNulls />
                                             </Fragment>
                                         ))}
-                                        <ReferenceLine y={140} stroke="#d4a373" strokeDasharray="3 3" />
+                                        <ReferenceLine y={140} stroke="#ffb4a2" strokeDasharray="8 8" />
                                     </LineChart>
                                 </ResponsiveContainer>
                             </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="bg-white p-6 sm:p-8 rounded-[3rem] shadow-sm border border-[#faedcd] h-[350px]">
-                                    <h3 className="text-lg mb-4 text-[#a98467] font-normal">心跳走勢 (bpm)</h3>
-                                    <ResponsiveContainer width="100%" height="85%">
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                <div className="cat-card p-8 h-[380px]">
+                                    <h3 className="text-lg mb-6 text-[#b5838d] font-bold">心跳心動 (bpm)</h3>
+                                    <ResponsiveContainer width="100%" height="80%">
                                         <LineChart data={chartData}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#faedcd" />
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffcdb2" />
                                             <XAxis dataKey="displayDate" style={{fontSize: '10px'}} />
                                             <YAxis width={35} domain={[40, 120]} style={{fontSize: '10px'}} />
-                                            <Tooltip contentStyle={{ borderRadius: '15px', border: '1px solid #faedcd', fontSize: '12px' }} />
-                                            {members.map(m => (<Line key={m.id} type="monotone" dataKey={`${m.id}_heartRate`} stroke={m.color} strokeWidth={4} dot={{ r: 4 }} connectNulls />))}
+                                            {members.map(m => (<Line name={m.name} key={m.id} type="monotone" dataKey={`${m.id}_heartRate`} stroke={m.color} strokeWidth={5} dot={{ r: 5 }} connectNulls />))}
                                         </LineChart>
                                     </ResponsiveContainer>
                                 </div>
-                                <div className="bg-white p-6 sm:p-8 rounded-[3rem] shadow-sm border border-[#faedcd] h-[350px]">
-                                    <h3 className="text-lg mb-4 text-[#a98467] font-normal">體重變動 (kg)</h3>
-                                    <ResponsiveContainer width="100%" height="85%">
+                                <div className="cat-card p-8 h-[380px]">
+                                    <h3 className="text-lg mb-6 text-[#b5838d] font-bold">體重控制 (kg)</h3>
+                                    <ResponsiveContainer width="100%" height="80%">
                                         <LineChart data={chartData}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#faedcd" />
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffcdb2" />
                                             <XAxis dataKey="displayDate" style={{fontSize: '10px'}} />
                                             <YAxis width={35} domain={['auto', 'auto']} style={{fontSize: '10px'}} />
-                                            <Tooltip contentStyle={{ borderRadius: '15px', border: '1px solid #faedcd', fontSize: '12px' }} />
-                                            {members.map(m => (<Line key={m.id} type="monotone" dataKey={`${m.id}_weight`} stroke={m.color} strokeWidth={4} dot={{ r: 4 }} connectNulls />))}
+                                            {members.map(m => (<Line name={m.name} key={m.id} type="monotone" dataKey={`${m.id}_weight`} stroke={m.color} strokeWidth={5} dot={{ r: 5 }} connectNulls />))}
                                         </LineChart>
                                     </ResponsiveContainer>
                                 </div>
@@ -450,56 +464,74 @@
                         </section>
                     </main>
 
-                    {/* 成員顏色設定 Modal */}
+                    {/* 成員管理 Modal */}
                     {isSettingsModalOpen && (
-                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/40 backdrop-blur-md">
-                            <div className="bg-white rounded-[3rem] w-full max-w-md p-8 shadow-2xl modal-fade-in border-4 border-white outline outline-1 outline-[#faedcd]">
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-[#6d597a]/40 backdrop-blur-md">
+                            <div className="bg-white rounded-[4rem] w-full max-w-md p-10 shadow-2xl modal-fade-in border-8 border-white cat-ears relative">
                                 <div className="flex justify-between items-center mb-8">
-                                    <h2 className="text-2xl text-[#a98467] font-normal">成員顏色設定</h2>
-                                    <button onClick={() => setIsSettingsModalOpen(false)} className="p-2 bg-[#f5f2e9] rounded-full"><Icon name="X" /></button>
+                                    <h2 className="text-3xl font-bold text-[#6d597a]">成員管理</h2>
+                                    <button onClick={() => setIsSettingsModalOpen(false)} className="p-3 bg-[#fdfcf0] rounded-full text-[#ffcdb2]"><Icon name="X" /></button>
                                 </div>
                                 
-                                <div className="space-y-8 font-normal">
+                                <div className="p-6 bg-[#fdfcf0] rounded-[2.5rem] border-2 border-[#ffcdb2] mb-8 space-y-5">
+                                    <div className="flex items-center gap-4">
+                                        <input type="color" value={newMemberForm.color} onChange={e => setNewMemberForm({...newMemberForm, color: e.target.value})} />
+                                        <input 
+                                            type="text" 
+                                            value={newMemberForm.name} 
+                                            onChange={e => setNewMemberForm({...newMemberForm, name: e.target.value})}
+                                            className="flex-1 px-5 py-3 bg-white rounded-2xl outline-none text-xl placeholder:text-gray-300" 
+                                            placeholder="新增名字..."
+                                        />
+                                        <button onClick={addMember} className="bg-[#ffb4a2] text-white p-3 rounded-full shadow-lg active:scale-90 transition-all"><Icon name="Plus" /></button>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6 max-h-[350px] overflow-y-auto pr-3 no-scrollbar">
                                     {members.map(m => (
-                                        <div key={m.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-full shadow-sm" style={{ backgroundColor: m.color }}></div>
-                                                <span className="text-xl">{m.name}</span>
+                                        <div key={m.id} className="p-6 bg-[#fdfcf0] rounded-3xl border-2 border-white shadow-sm flex items-center justify-between group">
+                                            <div className="flex items-center gap-5">
+                                                <input type="color" value={m.color} onChange={e => updateMember(m.id, 'color', e.target.value)} />
+                                                <input 
+                                                    type="text" 
+                                                    value={m.name} 
+                                                    onChange={e => updateMember(m.id, 'name', e.target.value)}
+                                                    className="bg-transparent border-b-2 border-dashed border-gray-200 outline-none text-xl font-bold w-28 focus:border-[#ffb4a2]"
+                                                />
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <label className="text-sm text-slate-400 italic">選顏色</label>
-                                                <input type="color" value={m.color} onChange={e => updateColor(m.id, e.target.value)} />
-                                            </div>
+                                            <button onClick={() => deleteMember(m.id)} className="text-[#ffcdb2] hover:text-red-400 p-2 active:scale-125 transition-all">
+                                                <Icon name="Trash2" size={24} />
+                                            </button>
                                         </div>
                                     ))}
                                 </div>
-                                <p className="mt-8 text-center text-slate-400 text-sm font-normal">修改後月曆與圖表會同步更換顏色 🎨</p>
+                                <p className="mt-8 text-center text-gray-300 text-sm italic font-medium">🐾 點擊色塊或文字可直接修改喔！</p>
                             </div>
                         </div>
                     )}
 
                     {/* 安裝指南 Modal */}
                     {isInstallModalOpen && (
-                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/40 backdrop-blur-md">
-                            <div className="bg-white rounded-[3rem] w-full max-w-md p-8 shadow-2xl modal-fade-in border-4 border-white outline outline-1 outline-[#faedcd]">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-2xl text-[#a98467] font-normal">安裝至手機桌面</h2>
-                                    <button onClick={() => setIsInstallModalOpen(false)} className="p-2 bg-[#f5f2e9] rounded-full"><Icon name="X" /></button>
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-[#6d597a]/40 backdrop-blur-md">
+                            <div className="bg-white rounded-[4rem] w-full max-w-md p-10 shadow-2xl modal-fade-in border-8 border-white cat-ears relative">
+                                <div className="flex justify-between items-center mb-8">
+                                    <h2 className="text-3xl font-bold text-[#6d597a]">帶貓貓去桌面</h2>
+                                    <button onClick={() => setIsInstallModalOpen(false)} className="p-3 bg-[#fdfcf0] rounded-full text-[#ffcdb2]"><Icon name="X" /></button>
                                 </div>
-                                <div className="space-y-8 text-lg text-slate-600 font-normal">
-                                    <div className="space-y-3">
-                                        <p className="font-bold text-[#a98467] border-b border-dashed border-[#faedcd] pb-1">iPhone (Safari)</p>
-                                        <ol className="list-decimal list-inside space-y-1">
-                                            <li>點擊 Safari 下方的 <Icon name="Share" size={20} className="inline mx-1 text-blue-500" /> 分享圖示</li>
-                                            <li>選擇「加入主畫面」</li>
+                                <div className="space-y-10 text-lg leading-relaxed font-medium">
+                                    <div className="space-y-4">
+                                        <p className="font-bold text-[#b5838d] border-b-4 border-dashed border-[#ffcdb2] pb-2 px-2">iPhone (Safari)</p>
+                                        <ol className="list-decimal list-inside space-y-3 px-4">
+                                            <li>點擊下方的 <Icon name="Share" size={22} className="inline mx-2 text-blue-400" /> 分享</li>
+                                            <li>選擇「加入主畫面」🐾</li>
                                             <li>點擊右上角「新增」</li>
                                         </ol>
                                     </div>
-                                    <div className="space-y-3">
-                                        <p className="font-bold text-[#a98467] border-b border-dashed border-[#faedcd] pb-1">Android (Chrome)</p>
-                                        <ol className="list-decimal list-inside space-y-1">
-                                            <li>點擊 Chrome 右上角的「三個點」選單</li>
-                                            <li>點擊「安裝應用程式」或「新增至桌面」</li>
+                                    <div className="space-y-4">
+                                        <p className="font-bold text-[#b5838d] border-b-4 border-dashed border-[#ffcdb2] pb-2 px-2">Android (Chrome)</p>
+                                        <ol className="list-decimal list-inside space-y-3 px-4">
+                                            <li>點擊右上角「三個點」</li>
+                                            <li>點擊「新增至主畫面」🐾</li>
                                         </ol>
                                     </div>
                                 </div>
@@ -509,61 +541,60 @@
 
                     {/* 數據紀錄 Modal */}
                     {isModalOpen && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-[#6b705c]/40 backdrop-blur-md">
-                            <div className="bg-white rounded-[4rem] w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border-4 border-white outline outline-4 outline-[#faedcd] modal-fade-in">
-                                <div className="p-8 sm:p-12 font-normal">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-[#6d597a]/40 backdrop-blur-md">
+                            <div className="bg-white rounded-[4rem] w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border-8 border-white modal-fade-in cat-ears relative no-scrollbar">
+                                <div className="p-8 sm:p-14">
                                     <div className="flex justify-between items-center mb-10">
-                                        <div><h2 className="text-3xl text-[#a98467]">身體小筆記 🌳</h2><p className="text-[#d4a373] text-xl underline decoration-dotted mt-1">{selectedDate}</p></div>
-                                        <button onClick={() => setIsModalOpen(false)} className="p-4 bg-[#f5f2e9] text-[#ccd5ae] rounded-full hover:rotate-90 transition-all"><Icon name="X" size={40} /></button>
+                                        <div><h2 className="text-4xl font-bold text-[#6d597a]">身體筆記 📒</h2><p className="text-[#b5838d] text-xl mt-2 tracking-widest font-bold">🐾 {selectedDate}</p></div>
+                                        <button onClick={() => setIsModalOpen(false)} className="p-5 bg-[#fdfcf0] rounded-full text-[#ffcdb2] hover:rotate-90 transition-all shadow-sm"><Icon name="X" size={44} /></button>
                                     </div>
                                     
-                                    <form onSubmit={handleSubmit} className="space-y-12">
-                                        {/* 成員選擇 */}
+                                    <form onSubmit={handleSubmit} className="space-y-14">
                                         <div className="flex flex-wrap gap-4">
                                             {members.map(m => (
                                                 <button key={m.id} type="button" onClick={() => setFormData({...formData, memberId: m.id})} 
-                                                    className={`px-8 py-4 rounded-2xl border-2 text-2xl transition-all active:scale-95 ${formData.memberId === m.id ? 'border-[#a98467] shadow-lg scale-105 font-normal' : 'bg-gray-50 text-gray-300 border-transparent font-normal'}`}
-                                                    style={formData.memberId === m.id ? { color: m.color, backgroundColor: `${m.color}20`, borderColor: m.color } : {}}>
+                                                    className={`px-10 py-5 rounded-[2rem] border-4 text-2xl font-bold transition-all active:scale-95 ${formData.memberId === m.id ? 'shadow-xl scale-105' : 'bg-white text-gray-200 border-gray-100 opacity-50'}`}
+                                                    style={formData.memberId === m.id ? { color: m.color, backgroundColor: `${m.color}15`, borderColor: m.color } : {}}>
                                                     {m.name}
                                                 </button>
                                             ))}
                                         </div>
 
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 font-normal">
-                                            <div className="space-y-8">
-                                                <label className="block text-[#ccd5ae] italic text-lg">就診狀況描述</label>
-                                                <input type="text" value={formData.hospital} onChange={e => setFormData({...formData, hospital: e.target.value})} className="w-full px-6 py-5 bg-[#f5f2e9] rounded-[2rem] outline-none text-xl font-normal" placeholder="醫院名稱" />
-                                                <input type="text" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} className="w-full px-6 py-5 bg-[#f5f2e9] rounded-[2rem] outline-none text-xl font-normal" placeholder="就診科別" />
-                                                <textarea value={formData.problem} onChange={e => setFormData({...formData, problem: e.target.value})} className="w-full px-6 py-5 bg-[#f5f2e9] rounded-[2rem] outline-none h-40 text-xl font-normal" placeholder="身體狀況描述..."></textarea>
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-14">
+                                            <div className="space-y-10">
+                                                <label className="block text-[#b5838d] font-bold text-xl px-2 italic">🩺 就診描述</label>
+                                                <input type="text" value={formData.hospital} onChange={e => setFormData({...formData, hospital: e.target.value})} className="w-full px-8 py-6 bg-[#fdfcf0] rounded-[2.5rem] outline-none text-2xl border-2 border-transparent focus:border-[#ffcdb2] transition-all" placeholder="醫院名稱" />
+                                                <input type="text" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} className="w-full px-8 py-6 bg-[#fdfcf0] rounded-[2.5rem] outline-none text-2xl border-2 border-transparent focus:border-[#ffcdb2] transition-all" placeholder="就診科別" />
+                                                <textarea value={formData.problem} onChange={e => setFormData({...formData, problem: e.target.value})} className="w-full px-8 py-6 bg-[#fdfcf0] rounded-[2.5rem] outline-none h-48 text-2xl border-2 border-transparent focus:border-[#ffcdb2] transition-all" placeholder="寫下身體狀況..."></textarea>
                                             </div>
                                             
-                                            <div className="space-y-10">
-                                                <div className="bg-[#fefae0] p-8 rounded-[3rem] border-2 border-dashed border-[#faedcd] space-y-6 shadow-sm font-normal">
-                                                    <h3 className="text-[#d4a373] text-lg tracking-widest uppercase flex items-center gap-3">身體數據測量</h3>
-                                                    <div className="grid grid-cols-2 gap-5">
-                                                        <div className="bg-white p-4 rounded-2xl text-center shadow-sm"><label className="text-xs text-[#ccd5ae] block mb-1">收縮壓</label><input type="number" value={formData.systolic} onChange={e => setFormData({...formData, systolic: e.target.value})} className="w-full outline-none text-2xl text-center text-[#a98467] font-normal" /></div>
-                                                        <div className="bg-white p-4 rounded-2xl text-center shadow-sm"><label className="text-xs text-[#ccd5ae] block mb-1">舒張壓</label><input type="number" value={formData.diastolic} onChange={e => setFormData({...formData, diastolic: e.target.value})} className="w-full outline-none text-2xl text-center text-[#a98467] font-normal" /></div>
-                                                        <div className="bg-white p-4 rounded-2xl text-center shadow-sm"><label className="text-xs text-[#ccd5ae] block mb-1">心跳</label><input type="number" value={formData.heartRate} onChange={e => setFormData({...formData, heartRate: e.target.value})} className="w-full outline-none text-2xl text-center text-[#a98467] font-normal" /></div>
-                                                        <div className="bg-white p-4 rounded-2xl text-center shadow-sm"><label className="text-xs text-[#ccd5ae] block mb-1">體重</label><input type="number" step="0.1" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} className="w-full outline-none text-2xl text-center text-[#a98467] font-normal" /></div>
+                                            <div className="space-y-12">
+                                                <div className="bg-[#fefae0]/50 p-10 rounded-[3.5rem] border-4 border-dashed border-[#ffcdb2] space-y-8 shadow-inner">
+                                                    <h3 className="text-[#b5838d] text-xl font-bold tracking-widest flex items-center gap-3">📏 身體數據測量</h3>
+                                                    <div className="grid grid-cols-2 gap-6">
+                                                        <div className="bg-white p-5 rounded-3xl text-center shadow-sm"><label className="text-xs text-[#b5838d] block mb-2 font-bold">收縮壓</label><input type="number" value={formData.systolic} onChange={e => setFormData({...formData, systolic: e.target.value})} className="w-full outline-none text-3xl text-center text-[#6d597a] font-bold" /></div>
+                                                        <div className="bg-white p-5 rounded-3xl text-center shadow-sm"><label className="text-xs text-[#b5838d] block mb-2 font-bold">舒張壓</label><input type="number" value={formData.diastolic} onChange={e => setFormData({...formData, diastolic: e.target.value})} className="w-full outline-none text-3xl text-center text-[#6d597a] font-bold" /></div>
+                                                        <div className="bg-white p-5 rounded-3xl text-center shadow-sm"><label className="text-xs text-[#b5838d] block mb-2 font-bold">心跳</label><input type="number" value={formData.heartRate} onChange={e => setFormData({...formData, heartRate: e.target.value})} className="w-full outline-none text-3xl text-center text-[#6d597a] font-bold" /></div>
+                                                        <div className="bg-white p-5 rounded-3xl text-center shadow-sm"><label className="text-xs text-[#b5838d] block mb-2 font-bold">體重</label><input type="number" step="0.1" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} className="w-full outline-none text-3xl text-center text-[#6d597a] font-bold" /></div>
                                                     </div>
                                                 </div>
 
-                                                <div className="bg-[#e9edc9]/40 p-8 rounded-[3rem] border-2 border-dashed border-[#ccd5ae] space-y-5 font-normal">
-                                                    <h3 className="text-[#6b705c] text-lg tracking-widest uppercase flex items-center gap-3">服用藥物紀錄</h3>
-                                                    <input type="text" value={formData.medication} onChange={e => setFormData({...formData, medication: e.target.value})} className="w-full px-6 py-4 bg-white rounded-2xl outline-none text-xl shadow-sm font-normal" placeholder="藥品名稱" />
-                                                    <input type="text" value={formData.frequency} onChange={e => setFormData({...formData, frequency: e.target.value})} className="w-full px-6 py-4 bg-white rounded-2xl outline-none text-xl shadow-sm font-normal" placeholder="服用頻率" />
+                                                <div className="bg-[#ffcdb2]/20 p-10 rounded-[3.5rem] border-4 border-dashed border-white space-y-6">
+                                                    <h3 className="text-[#6d597a] text-xl font-bold tracking-widest flex items-center gap-3">💊 服用藥品紀錄</h3>
+                                                    <input type="text" value={formData.medication} onChange={e => setFormData({...formData, medication: e.target.value})} className="w-full px-8 py-5 bg-white rounded-3xl outline-none text-2xl shadow-sm border-2 border-transparent focus:border-[#ffcdb2] transition-all" placeholder="藥品名稱" />
+                                                    <input type="text" value={formData.frequency} onChange={e => setFormData({...formData, frequency: e.target.value})} className="w-full px-8 py-5 bg-white rounded-3xl outline-none text-2xl shadow-sm border-2 border-transparent focus:border-[#ffcdb2] transition-all" placeholder="服用頻率" />
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="flex gap-6 pt-10 font-normal">
-                                            {editingRecord && <button type="button" onClick={() => { if(confirm('確定刪除紀錄嗎？')) window.FirebaseSDK.deleteDoc(window.FirebaseSDK.doc(db, 'artifacts', appId, 'users', user.uid, 'health_records', editingRecord.id)); setIsModalOpen(false); }} className="p-6 bg-gray-50 text-gray-300 rounded-[2.5rem] hover:text-red-400 active:bg-red-50 transition-all"><Icon name="Trash2" size={32} /></button>}
+                                        <div className="flex gap-8 pt-10 font-bold">
+                                            {editingRecord && <button type="button" onClick={() => { if(confirm('確定要毀滅這筆紀錄嗎？')) window.FirebaseSDK.deleteDoc(window.FirebaseSDK.doc(db, 'artifacts', appId, 'users', user.uid, 'health_records', editingRecord.id)); setIsModalOpen(false); }} className="p-8 bg-white border-4 border-[#ffcdb2] text-[#ffcdb2] rounded-[3rem] hover:bg-red-50 hover:text-red-400 active:scale-90 transition-all"><Icon name="Trash2" size={40} /></button>}
                                             <button 
                                                 type="submit" 
                                                 disabled={isSaving}
-                                                className={`flex-1 py-6 text-white text-2xl rounded-[2.5rem] shadow-2xl transition-all active:scale-95 outline-none font-normal ${isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#d4a373] hover:bg-[#a98467]'}`}
+                                                className={`flex-1 py-8 text-white text-3xl rounded-[3rem] shadow-2xl transition-all active:scale-95 outline-none font-bold ${isSaving ? 'bg-gray-300' : 'bg-[#ffb4a2] hover:bg-[#e5989b]'}`}
                                             >
-                                                {isSaving ? "正在儲存..." : "儲存紀錄 🍂"}
+                                                {isSaving ? "正在蓋章中..." : "蓋章儲存筆記 🐾"}
                                             </button>
                                         </div>
                                     </form>
